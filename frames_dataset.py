@@ -111,14 +111,14 @@ class FramesDataset(Dataset):
             frames = os.listdir(path)
             num_frames = len(frames)
             frame_idx = np.sort(np.random.choice(num_frames, replace=True, size=2))
-            video_array = [img_as_float32(io.imread(os.path.join(path, frames[idx]))) for idx in frame_idx]
+            video_array = [img_as_float32(io.imread(os.path.join(path, frames[idx].decode('utf-8')))) for idx in frame_idx]
         else:
             video_array = read_video(path, frame_shape=self.frame_shape)
             num_frames = len(video_array)
             frame_idx = np.sort(np.random.choice(num_frames, replace=True, size=2)) if self.is_train else range(
                 num_frames)
             video_array = video_array[frame_idx]
-
+            
         if self.transform is not None:
             video_array = self.transform(video_array)
 
@@ -129,6 +129,9 @@ class FramesDataset(Dataset):
 
             out['driving'] = driving.transpose((2, 0, 1))
             out['source'] = source.transpose((2, 0, 1))
+            
+            out['driving_path'] = os.path.join(path, frames[0].decode('utf-8'))
+            out['source_path'] = os.path.join(path, frames[1].decode('utf-8'))
         else:
             video = np.array(video_array, dtype='float32')
             out['video'] = video.transpose((3, 0, 1, 2))
